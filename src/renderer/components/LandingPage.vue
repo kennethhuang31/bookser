@@ -1,11 +1,14 @@
 <template>
   <div id="wrapper">
     <div class="search">
-      <a-input-search v-model="keyword" placeholder="input search text" enter-button @search="onSearch" />
+      <a-input-search v-model="keyword" placeholder="input search text1" enter-button @search="onSearch" />
     </div>
     <div class="table">
       <a-table :columns="tableColumns" :data-source="tableData" rowKey="id">
-        <img slot="bookPic" slot-scope="bookPic" style="width: 200px;" :src="bookPic" />
+        <img slot="bookPic" slot-scope="bookPic" style="width: 100px;" :src="bookPic" />
+        <div slot="description" slot-scope="description">
+          {{ description.trim() }}
+        </div>
         <div slot="downloadInfos" slot-scope="downloadInfos, rowData" class="btnlist">
           <a-button
             v-for="downloadInfo in downloadInfos"
@@ -24,7 +27,7 @@
 </template>
 
 <script>
-  const fs = require('fs')
+  const { ipcRenderer } = require('electron')
   const tableColumns = [
     {
       key: 'id',
@@ -41,12 +44,15 @@
     {
       key: 'title',
       dataIndex: 'title',
-      title: 'Book Name'
+      title: 'Book Name',
+      width: 300
     },
     {
       key: 'description',
       dataIndex: 'description',
-      title: 'Description'
+      title: 'Description',
+      slots: { title: 'description' },
+      scopedSlots: { customRender: 'description' }
     },
     {
       key: 'downloadInfos',
@@ -81,14 +87,7 @@
         const name = title + '.' + suffix
         console.log(url)
         console.log(title + '.' + suffix)
-        this.$http({
-          method: 'get',
-          url,
-          responseType: 'stream'
-        })
-          .then(function (response) {
-            response.data.pipe(fs.createWriteStream(name))
-          })
+        ipcRenderer.send('downloadRequest', [name, url])
       }
     }
   }

@@ -1,6 +1,7 @@
 'use strict'
 
 import { app, BrowserWindow } from 'electron'
+import axios from 'axios'
 
 /**
  * Set `__static` path to static files in production
@@ -14,6 +15,10 @@ let mainWindow
 const winURL = process.env.NODE_ENV === 'development'
   ? `http://localhost:9080`
   : `file://${__dirname}/index.html`
+
+const { ipcMain } = require('electron')
+const fs = require('fs')
+axios.defaults.adapter = require('axios/lib/adapters/http')
 
 function createWindow () {
   /**
@@ -33,6 +38,20 @@ function createWindow () {
 
   mainWindow.on('closed', () => {
     mainWindow = null
+  })
+
+  ipcMain.on('downloadRequest', function (event, arg) {
+    axios({
+      method: 'get',
+      url: arg[1],
+      responseType: 'stream'
+    })
+      .then(function (response) {
+        response.data.pipe(fs.createWriteStream(arg[0]))
+        response.data.on('end', () => {
+          console.log('downloaded!')
+        })
+      })
   })
 }
 
