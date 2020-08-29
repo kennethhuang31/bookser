@@ -11,6 +11,16 @@ export default new Router({
       component: require('@/components/LandingPage').default
     },
     {
+      path: '/downloaded-books',
+      name: 'downloaded-books',
+      component: require('@/components/DownloadedBooks').default
+    },
+    {
+      path: '/book-detail',
+      name: 'book-detail',
+      component: require('@/components/BookDetail').default
+    },
+    {
       path: '*',
       redirect: '/'
     }

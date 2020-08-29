@@ -41,15 +41,21 @@ function createWindow () {
   })
 
   ipcMain.on('downloadRequest', function (event, arg) {
+    // judge if the 'url' exists, if not, just return
+    if (!arg[1]) return
+    if (!fs.existsSync('books')) {
+      fs.mkdirSync('books')
+    }
     axios({
       method: 'get',
       url: arg[1],
       responseType: 'stream'
     })
       .then(function (response) {
-        response.data.pipe(fs.createWriteStream(arg[0]))
+        response.data.pipe(fs.createWriteStream('books/' + arg[0]))
         response.data.on('end', () => {
           console.log('downloaded!')
+          event.returnValue = 'downloaded'
         })
       })
   })
