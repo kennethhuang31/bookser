@@ -55,33 +55,41 @@
         })
       },
       decodeText (text) {
+        const _this = this
         const $ = cheerio.load(text)
-        $('body').append(`<style>${this.css}</style>`)
+        $('link[type="text/css"]').remove()
+        $('body').append(`<style>${_this.css}</style>`)
         $('img').each((i, item) => {
           let src = item.attribs.src
           src = src.slice(3, src.length)
-          let imgId = this.imgObj[src].id
-          this.data.getImage(imgId, (error, data, mimeType) => {
+          let imgId = _this.imgObj[src].id
+          $(item).attr('src', '')
+          _this.data.getImage(imgId, (error, data, mimeType) => {
             if (!error) {
               const imgSrc = `data:${mimeType};base64,` + data.toString('base64')
               $(item).attr('src', imgSrc)
-              this.content = $.html()
-              this.$forceUpdate()
+              _this.content = $.html()
+              _this.$forceUpdate()
             } else {
               console.log(error)
             }
           })
         })
-        this.content = $.html()
+        _this.content = $.html()
+        // console.log(_this.content)
       }
     },
     mounted () {
       this.data = this.$route.params.data
       if (this.data) {
         for (let key in this.data.manifest) {
-          this.imgObj[this.data.manifest[key].href] = this.data.manifest[key]
+          let href = this.data.manifest[key].href
+          if (this.data.manifest[key].href.indexOf('OEBPS/') !== -1) {
+            href = href.slice(6, href.length)
+          }
+          this.imgObj[href] = this.data.manifest[key]
         }
-        console.log(this.imgObj)
+        // console.log(this.imgObj)
         this.data.getChapterRaw(this.data.flow[1].id, (error, text) => {
           error ? console.log(error) : this.decodeText(text)
         })
