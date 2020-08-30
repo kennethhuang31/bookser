@@ -8,12 +8,11 @@
       >Back</a-button>
     </div>
     <div>
-      <a-row :gutter="16">
-        <a-col :span="8" v-for="(book, i) in books" :key="i" @click="openBook(book)">
-          <a-card hoverable style="width: 240px">
+      <div class="grid">
+        <div class="block" v-for="(book, i) in books" :key="i">
+          <a-card :loading="isLoading" hoverable @click="openBook(book)">
             <img
                 slot="cover"
-                alt="example"
                 :src="book.imgUrl"
             />
             <a-card-meta :title="book.metadata.title">
@@ -24,8 +23,8 @@
               </template>
             </a-card-meta>
           </a-card>
-        </a-col>
-      </a-row>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -37,8 +36,8 @@
     name: 'DownloadedBooks',
     data: function () {
       return {
-        chapters: [],
-        books: []
+        books: [],
+        isLoading: false
       }
     },
     methods: {
@@ -52,6 +51,7 @@
       }
     },
     mounted () {
+      this.isLoading = true
       let files = fs.readdirSync('books')
       files.map((file, index) => {
         let epub = new EPub('books/' + file)
@@ -68,6 +68,9 @@
         })
         epub.parse()
       })
+      setTimeout(() => {
+        this.isLoading = false
+      }, 1000)
       console.log(this.books)
     }
   }
@@ -83,5 +86,25 @@
 
   #books {
     padding: 30px;
+  }
+
+  .grid {
+    -webkit-column-count: 4;
+    -webkit-column-gap: 10px;
+    -webkit-column-fill: auto;
+    -moz-column-count: 4;
+    -moz-column-gap: 10px;
+    -moz-column-fill: auto;
+    column-count: 5;
+    column-gap: 15px;
+    column-fill: auto;
+  }
+
+  .block {
+    word-wrap: break-word;
+    margin-bottom: 15px;
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside: avoid;
+    column-break-inside: avoid;
   }
 </style>
